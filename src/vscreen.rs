@@ -212,15 +212,15 @@ impl Attributes {
     }
 
     fn update_with_charset(&mut self, kind: char, set: impl Iterator<Item = char>) -> bool {
-        self.charset = format!("\x1B{}{}", kind, set.take(1).collect::<String>());
+        self.charset = format!("\x1B{kind}{}", set.take(1).collect::<String>());
         true
     }
 
     fn parse_color(color: u16, parameters: &mut dyn Iterator<Item = u16>) -> String {
         match color % 10 {
             8 => match parameters.next() {
-                Some(5) /* 256-color */ => format!("\x1B[{};5;{}m", color, join(";", 1, parameters)),
-                Some(2) /* 24-bit color */ => format!("\x1B[{};2;{}m", color, join(";", 3, parameters)),
+                Some(5) /* 256-color */ => format!("\x1B[{color};5;{}m", join(";", 1, parameters)),
+                Some(2) /* 24-bit color */ => format!("\x1B[{color};2;{}m", join(";", 3, parameters)),
                 Some(c) => format!("\x1B[{color};{c}m"),
                 _ => "".to_owned(),
             },
@@ -360,10 +360,10 @@ pub struct EscapeSequenceOffsetsIterator<'a> {
 
 impl<'a> EscapeSequenceOffsetsIterator<'a> {
     pub fn new(text: &'a str) -> EscapeSequenceOffsetsIterator<'a> {
-        return EscapeSequenceOffsetsIterator {
+        EscapeSequenceOffsetsIterator {
             text,
             chars: text.char_indices().peekable(),
-        };
+        }
     }
 
     /// Takes values from the iterator while the predicate returns true.
@@ -539,7 +539,7 @@ impl<'a> EscapeSequenceOffsetsIterator<'a> {
     }
 }
 
-impl<'a> Iterator for EscapeSequenceOffsetsIterator<'a> {
+impl Iterator for EscapeSequenceOffsetsIterator<'_> {
     type Item = EscapeSequenceOffsets;
     fn next(&mut self) -> Option<Self::Item> {
         match self.chars.peek() {
@@ -564,10 +564,10 @@ pub struct EscapeSequenceIterator<'a> {
 
 impl<'a> EscapeSequenceIterator<'a> {
     pub fn new(text: &'a str) -> EscapeSequenceIterator<'a> {
-        return EscapeSequenceIterator {
+        EscapeSequenceIterator {
             text,
             offset_iter: EscapeSequenceOffsetsIterator::new(text),
-        };
+        }
     }
 }
 

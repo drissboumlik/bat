@@ -88,9 +88,8 @@ pub fn generate_config_file() -> bat::error::Result<()> {
 
     fs::write(&config_file, default_config).map_err(|e| {
         format!(
-            "Failed to create config file at '{}': {}",
+            "Failed to create config file at '{}': {e}",
             config_file.to_string_lossy(),
-            e
         )
     })?;
 
@@ -140,14 +139,19 @@ fn get_args_from_str(content: &str) -> Result<Vec<OsString>, shell_words::ParseE
 pub fn get_args_from_env_vars() -> Vec<OsString> {
     [
         ("--tabs", "BAT_TABS"),
-        ("--theme", "BAT_THEME"),
+        ("--theme", bat::theme::env::BAT_THEME),
+        ("--theme-dark", bat::theme::env::BAT_THEME_DARK),
+        ("--theme-light", bat::theme::env::BAT_THEME_LIGHT),
         ("--pager", "BAT_PAGER"),
         ("--paging", "BAT_PAGING"),
         ("--style", "BAT_STYLE"),
     ]
     .iter()
-    .filter_map(|(flag, key)| env::var(key).ok().map(|var| [flag.to_string(), var]))
-    .flatten()
+    .filter_map(|(flag, key)| {
+        env::var(key)
+            .ok()
+            .map(|var| [flag.to_string(), var].join("="))
+    })
     .map(|a| a.into())
     .collect()
 }
